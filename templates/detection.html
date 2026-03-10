@@ -1,0 +1,29 @@
+<div id="uploadArea"></div>
+
+<h2 id="diseaseName"></h2>
+
+<h3 id="statusIndicator"></h3>
+
+<input type="file" id="fileInput" hidden>
+
+<div id="previewContainer" style="display:none;">
+    <img id="imagePreview">
+</div>
+
+<button id="analyzeBtn" disabled>Analyze Image</button>
+
+<div id="results" style="display:none;">
+    <h2 id="diseaseName"></h2>
+
+    <p id="diseaseDescription"></p>
+
+    <ul id="recommendations"></ul>
+
+    <div>
+        Confidence: <span id="confidenceValue"></span>
+    </div>
+
+    <div class="confidence-bar">
+        <div id="confidenceFill"></div>
+    </div>
+</div>

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Plant Disease Detection</title>
+    <style>
+        #previewContainer, #results { display: none; margin-top: 20px; }
+        #uploadArea { border: 2px dashed #ccc; padding: 20px; cursor: pointer; text-align: center; }
+        .progress-bar { width: 100%; background: #eee; height: 10px; }
+        #confidenceFill { height: 100%; background: green; width: 0%; transition: 0.5s; }
+    </style>
+</head>
+<body>
+    <h1>Plant Disease Detector</h1>
+    
+    <div id="uploadArea">Click to Upload Plant Image</div>
+    <input type="file" id="fileInput" hidden accept="image/*">
+
+    <div id="previewContainer">
+        <img id="imagePreview" width="300">
+        <br>
+        <button id="analyzeBtn">Analyze Image</button>
+    </div>
+
+    <div id="results">
+        <h2>Result: <span id="diseaseName"></span></h2>
+        <p id="diseaseDescription"></p>
+        <div class="progress-bar"><div id="confidenceFill"></div></div>
+        <p>Confidence: <span id="confidenceValue"></span></p>
+        <h3>Recommendations:</h3>
+        <ul id="recommendations"></ul>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const fileInput = document.getElementById("fileInput");
+            const analyzeBtn = document.getElementById("analyzeBtn");
+
+            document.getElementById("uploadArea").addEventListener("click", () => fileInput.click());
+
+            fileInput.addEventListener("change", () => {
+                const file = fileInput.files[0];
+                if (file) {
+                    document.getElementById("imagePreview").src = URL.createObjectURL(file);
+                    document.getElementById("previewContainer").style.display = "block";
+                }
+            });
+
+            analyzeBtn.addEventListener("click", async () => {
+                const file = fileInput.files[0];
+                if (!file) return;
+
+                analyzeBtn.innerText = "Analyzing...";
+                analyzeBtn.disabled = true;
+
+                const formData = new FormData();
+                formData.append("file", file);
+
+                try {
+                    const response = await fetch("/predict", { method: "POST", body: formData });
+                    
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || "Server crash");
+                    }
+
+                    const data = await response.json();
+
+                    // Update UI
+                    document.getElementById("diseaseName").textContent = data.disease;
+                    document.getElementById("diseaseDescription").textContent = data.description;
+                    document.getElementById("confidenceValue").textContent = data.confidence + "%";
+                    document.getElementById("confidenceFill").style.width = data.confidence + "%";
+                    
+                    const recList = document.getElementById("recommendations");
+                    recList.innerHTML = "";
+                    data.prevention.forEach(item => {
+                        const li = document.createElement("li");
+                        li.textContent = item;
+                        recList.appendChild(li);
+                    });
+
+                    document.getElementById("results").style.display = "block";
+
+                } catch (err) {
+                    alert("Error: " + err.message);
+                    console.error(err);
+                } finally {
+                    analyzeBtn.innerText = "Analyze Image";
+                    analyzeBtn.disabled = false;
+                }
+            });
+        });
+    </script>
+</body>
+</html>
